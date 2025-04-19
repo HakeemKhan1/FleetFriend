@@ -1,11 +1,12 @@
 {
-  "name": "fleetfriend",
-  "version": "1.0.0",
-  "description": "Fleet Management tool",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+    "name": "fleetfriend",
+    "version": "1.0.0",
+    "scripts": {
+      "start": "cd Backend && npm start",
+      "dev": "cd Backend && npm run dev",
+      "install:backend": "cd Backend && npm install"
+    },
+    "description": "Fleet Management System",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/HakeemKhan1/FleetFriend.git"
