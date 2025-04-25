@@ -1,0 +1,7 @@
+{
+  "liveServer.settings.ignoreFiles": [
+    "BackEnd/logs/**", // Ignore the entire logs directory
+    "BackEnd/combined.log", // Ignore the combined log file in BackEnd root
+    "BackEnd/error.log" // Ignore the error log file in BackEnd root
+  ]
+}

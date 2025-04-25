@@ -123,54 +123,77 @@ const ApiService = {
                     },
                     body: JSON.stringify(bookingData),
                 });
-                if (!response.ok) throw new Error('Failed to create booking');
+                if (!response.ok) {
+                     // Throw an error object that includes the response for detailed handling
+                     const error = new Error('Failed to create booking');
+                     error.response = response;
+                     throw error;
+                }
                 return await response.json();
             } catch (error) {
                 console.error('Error creating booking:', error);
+                // Check if the error response has a specific message (like conflict)
+                if (error.response && error.response.status === 409) {
+                    const errorData = await error.response.json();
+                    throw new Error(errorData.message || 'Booking conflict detected.');
+                }
+                throw new Error('Failed to create booking');
+            }
+        },
+
+        // Update an existing booking
+        update: async (id, bookingData) => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/bookings/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(bookingData),
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `Failed to update booking (status: ${response.status})`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error(`Error updating booking ${id}:`, error);
                 throw error;
             }
         },
 
-        // Check if a vehicle is available for a specific time period
+        // Delete a booking
+        delete: async (id) => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/bookings/${id}`, {
+                    method: 'DELETE',
+                });
+                 if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `Failed to delete booking (status: ${response.status})`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error(`Error deleting booking ${id}:`, error);
+                throw error;
+            }
+        },
+
+        // Check vehicle availability using the backend endpoint
         checkAvailability: async (startDateTime, endDateTime) => {
             try {
-                // Get all vehicles
-                const vehicles = await ApiService.vehicles.getAll();
-                
-                // Get all bookings
-                const bookings = await ApiService.bookings.getAll();
-                
-                // Convert input dates to timestamps for comparison
-                const startTime = new Date(startDateTime).getTime();
-                const endTime = new Date(endDateTime).getTime();
-                
-                // Filter out vehicles that have overlapping bookings
-                const availableVehicles = vehicles.filter(vehicle => {
-                    // Skip vehicles in maintenance
-                    if (vehicle.status === 'maintenance') return false;
-                    
-                    // Check if vehicle has any conflicting bookings
-                    const conflictingBooking = bookings.find(booking => {
-                        // Skip bookings for other vehicles or cancelled bookings
-                        if (booking.vehicleId !== vehicle._id || booking.status === 'cancelled') return false;
-                        
-                        // Convert booking dates to timestamps
-                        const bookingStart = new Date(booking.startDateTime).getTime();
-                        const bookingEnd = new Date(booking.endDateTime).getTime();
-                        
-                        // Check for overlap
-                        return (
-                            (startTime >= bookingStart && startTime < bookingEnd) || // Start time falls within existing booking
-                            (endTime > bookingStart && endTime <= bookingEnd) || // End time falls within existing booking
-                            (startTime <= bookingStart && endTime >= bookingEnd) // New booking completely encompasses existing booking
-                        );
-                    });
-                    
-                    // Vehicle is available if there are no conflicting bookings
-                    return !conflictingBooking;
+                const response = await fetch(`${API_BASE_URL}/bookings/availability`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ startDateTime, endDateTime }),
                 });
-                
-                return availableVehicles;
+                if (!response.ok) {
+                     const errorData = await response.json();
+                    throw new Error(errorData.message || `Failed to check availability (status: ${response.status})`);
+                }
+                return await response.json();
             } catch (error) {
                 console.error('Error checking vehicle availability:', error);
                 throw error;

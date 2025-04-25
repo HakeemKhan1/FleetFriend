@@ -128,6 +128,14 @@ const Dashboard = (() => {
         const license = Utils.dom.createElement('p', {}, `<i class="fas fa-id-card"></i> ${vehicle.licensePlate}`);
         info.appendChild(license);
         
+        // Type and Color
+        const typeColor = Utils.dom.createElement('p', {}, `<i class="fas fa-car"></i> ${vehicle.type} (${vehicle.color})`);
+        info.appendChild(typeColor);
+        
+        // Fuel Type
+        const fuel = Utils.dom.createElement('p', {}, `<i class="fas fa-gas-pump"></i> ${vehicle.fuelType}`);
+        info.appendChild(fuel);
+        
         // Seats
         const seats = Utils.dom.createElement('p', {}, `<i class="fas fa-users"></i> ${vehicle.seats} seats`);
         info.appendChild(seats);
@@ -175,7 +183,7 @@ const Dashboard = (() => {
         } else {
             // Filter vehicles by search term
             filteredVehicles = Utils.search.filter(vehicles, searchTerm, [
-                'make', 'model', 'year', 'licensePlate', 'parkingLocation', 'description'
+                'make', 'model', 'year', 'type', 'color', 'fuelType', 'licensePlate', 'parkingLocation', 'description'
             ]);
         }
         
@@ -200,6 +208,9 @@ const Dashboard = (() => {
                 'vehicle-make': vehicle.make,
                 'vehicle-model': vehicle.model,
                 'vehicle-year': vehicle.year,
+                'vehicle-type': vehicle.type,
+                'vehicle-color': vehicle.color,
+                'vehicle-fuel': vehicle.fuelType,
                 'vehicle-license': vehicle.licensePlate,
                 'vehicle-seats': vehicle.seats,
                 'vehicle-location': vehicle.parkingLocation || '',
@@ -234,6 +245,9 @@ const Dashboard = (() => {
                 make: document.getElementById('vehicle-make').value,
                 model: document.getElementById('vehicle-model').value,
                 year: document.getElementById('vehicle-year').value,
+                type: document.getElementById('vehicle-type').value,
+                color: document.getElementById('vehicle-color').value,
+                fuelType: document.getElementById('vehicle-fuel').value,
                 licensePlate: document.getElementById('vehicle-license').value,
                 seats: parseInt(document.getElementById('vehicle-seats').value),
                 parkingLocation: document.getElementById('vehicle-location').value,

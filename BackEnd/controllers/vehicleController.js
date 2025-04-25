@@ -1,5 +1,5 @@
 const Vehicle = require('../models/Vehicle');
-const logger = require('../config/logger');
+const logger = require('../config/logger').logger;
 
 exports.getAllVehicles = async (req, res) => {
     try {

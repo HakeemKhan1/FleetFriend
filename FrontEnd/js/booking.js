@@ -13,8 +13,11 @@ const Booking = (() => {
     
     // Booking form elements
     const bookingForm = document.getElementById('booking-form');
+    const bookingIdInput = document.getElementById('booking-id'); // Added for edit check
     const bookingVehicleIdInput = document.getElementById('booking-vehicle-id');
     const cancelBookingBtn = document.getElementById('cancel-booking');
+    const bookingModalTitle = document.getElementById('booking-modal-title'); // Added for reset
+    const submitBookingBtn = document.getElementById('submit-booking-btn'); // Added for reset
     
     // State
     let availableVehicles = [];
@@ -213,9 +216,12 @@ const Booking = (() => {
             return;
         }
         
+        const bookingId = bookingIdInput.value;
+        const isEditing = !!bookingId; // Check if we are editing
+
         try {
-            // Get form data
-            const bookingData = {
+            // Get common form data
+            const commonBookingData = {
                 vehicleId: bookingVehicleIdInput.value,
                 employeeName: document.getElementById('booking-employee').value,
                 email: document.getElementById('booking-email').value,
@@ -223,32 +229,93 @@ const Booking = (() => {
                 projectCode: document.getElementById('booking-project-code').value,
                 location: document.getElementById('booking-location').value,
                 purpose: document.getElementById('booking-purpose').value,
-                startDateTime: selectedStartDate.toISOString(),
-                endDateTime: selectedEndDate.toISOString(),
-                status: 'active'
+                status: 'active' // Assuming status remains active on update
             };
-            
-            // Create booking
-            const result = await ApiService.bookings.create(bookingData);
+
+            let result;
+            let successMessage;
+
+            if (isEditing) {
+                // --- Update Existing Booking ---
+                const updatedBookingData = {
+                    ...commonBookingData,
+                    // Get dates from the edit inputs
+                    startDateTime: new Date(document.getElementById('booking-edit-start-date').value).toISOString(),
+                    endDateTime: new Date(document.getElementById('booking-edit-end-date').value).toISOString()
+                };
+
+                // Basic date validation for edit
+                if (new Date(updatedBookingData.endDateTime) <= new Date(updatedBookingData.startDateTime)) {
+                    Utils.notification.toast('End date must be after start date', 'warning');
+                    return;
+                }
+                 if (new Date(updatedBookingData.startDateTime) < new Date() && !confirm("The selected start date is in the past. Are you sure you want to proceed?")) {
+                    // Optional: Add confirmation for past start dates during edit if needed
+                    // return; 
+                    // For now, allow past dates on edit, but log or handle as needed
+                     console.warn("Editing booking with a start date in the past.");
+                }
+
+
+                result = await ApiService.bookings.update(bookingId, updatedBookingData);
+                successMessage = 'Booking updated successfully';
+
+            } else {
+                // --- Create New Booking ---
+                // Ensure selectedStartDate and selectedEndDate are valid (from the date form)
+                if (!selectedStartDate || !selectedEndDate) {
+                     Utils.notification.toast('Please select start and end dates first.', 'warning');
+                     return;
+                }
+
+                const newBookingData = {
+                    ...commonBookingData,
+                    startDateTime: selectedStartDate.toISOString(),
+                    endDateTime: selectedEndDate.toISOString()
+                };
+                result = await ApiService.bookings.create(newBookingData);
+                successMessage = 'Vehicle booked successfully';
+            }
             
             // Close modal
             Utils.modal.close('booking-modal');
             
             // Show success message
-            Utils.notification.toast('Vehicle booked successfully', 'success');
+            Utils.notification.toast(successMessage, 'success');
             
-            // Reset form and hide available vehicles
-            Utils.form.reset('booking-date-form');
-            Utils.dom.hide(availableVehiclesContainer);
-            
-            // Reset state
-            availableVehicles = [];
-            
-            // Set default dates
-            setDefaultDates();
+            // Reset common elements after success
+            Utils.form.reset('booking-form'); // Reset the booking modal form
+            bookingModalTitle.textContent = 'Book a Vehicle'; // Reset title
+            submitBookingBtn.textContent = 'Confirm Booking'; // Reset button text
+
+            if (!isEditing) {
+                // Reset specific elements only needed after CREATING a booking
+                Utils.form.reset('booking-date-form'); // Reset the date selection form
+                Utils.dom.hide(availableVehiclesContainer); // Hide available vehicles list
+                availableVehicles = []; // Clear available vehicles state
+                setDefaultDates(); // Reset default dates for next booking
+            }
+
+            // Refresh calendar view (important for both create and update)
+            if (window.Calendar && typeof window.Calendar.init === 'function') {
+                 // Use a slight delay to ensure modal is closed before potentially heavy refresh
+                setTimeout(async () => {
+                    await window.Calendar.init(); // Re-initialize calendar to show updated/new booking
+                }, 100); 
+            } else {
+                console.warn('Calendar module not found or init function missing.');
+                // Fallback: Reload the page if calendar refresh isn't possible
+                // window.location.reload(); 
+            }
+
         } catch (error) {
-            console.error('Error creating booking:', error);
-            Utils.notification.toast('Failed to book vehicle', 'error');
+            console.error(`Error ${isEditing ? 'updating' : 'creating'} booking:`, error);
+            // Check for conflict error (status code 409)
+            if (error.response && error.response.status === 409) {
+                 Utils.notification.toast(error.message || 'Booking conflict: Vehicle already booked for this time.', 'error');
+            } else {
+                 Utils.notification.toast(`Failed to ${isEditing ? 'update' : 'book'} vehicle: ${error.message || 'Server error'}`, 'error');
+            }
         }
     };
     

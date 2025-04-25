@@ -204,6 +204,15 @@ const Utils = {
         // Get first day of month (0 = Sunday, 6 = Saturday)
         getFirstDayOfMonth: (year, month) => {
             return new Date(year, month, 1).getDay();
+        },
+
+        // Format date/time for datetime-local input (YYYY-MM-DDTHH:mm)
+        formatDateTimeLocal: (dateString) => {
+            const date = new Date(dateString);
+            // Adjust for timezone offset to get local time correctly
+            const timezoneOffset = date.getTimezoneOffset() * 60000; // offset in milliseconds
+            const localISOTime = new Date(date.getTime() - timezoneOffset).toISOString().slice(0, 16);
+            return localISOTime;
         }
     },
     

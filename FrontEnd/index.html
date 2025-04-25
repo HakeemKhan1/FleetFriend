@@ -156,6 +156,31 @@
                         <input type="text" id="vehicle-year" required>
                     </div>
                     <div class="form-group">
+                        <label for="vehicle-type">Type</label>
+                        <select id="vehicle-type" required>
+                            <option value="sedan">Sedan</option>
+                            <option value="suv">SUV</option>
+                            <option value="truck">Truck</option>
+                            <option value="van">Van</option>
+                            <option value="compact">Compact</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="vehicle-color">Color</label>
+                        <input type="text" id="vehicle-color" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="vehicle-fuel">Fuel Type</label>
+                        <select id="vehicle-fuel" required>
+                            <option value="gasoline">Gasoline</option>
+                            <option value="diesel">Diesel</option>
+                            <option value="electric">Electric</option>
+                            <option value="hybrid">Hybrid</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label for="vehicle-license">License Plate</label>
                         <input type="text" id="vehicle-license" required>
                     </div>
@@ -192,11 +217,12 @@
     <div class="modal" id="booking-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Book a Vehicle</h2>
+                <h2 id="booking-modal-title">Book a Vehicle</h2>
                 <span class="close-modal">&times;</span>
             </div>
             <div class="modal-body">
                 <form id="booking-form">
+                    <input type="hidden" id="booking-id"> <!-- Added for editing -->
                     <input type="hidden" id="booking-vehicle-id">
                     <div class="form-group">
                         <label for="booking-employee">Employee Name</label>
@@ -222,9 +248,18 @@
                         <label for="booking-purpose">Purpose</label>
                         <textarea id="booking-purpose" rows="3" required></textarea>
                     </div>
+                    <!-- Added Start and End Date/Time for Editing -->
+                    <div class="form-group">
+                        <label for="booking-edit-start-date">Start Date & Time</label>
+                        <input type="datetime-local" id="booking-edit-start-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="booking-edit-end-date">End Date & Time</label>
+                        <input type="datetime-local" id="booking-edit-end-date" required>
+                    </div>
                     <div class="form-actions">
                         <button type="button" class="btn secondary" id="cancel-booking">Cancel</button>
-                        <button type="submit" class="btn primary">Confirm Booking</button>
+                        <button type="submit" class="btn primary" id="submit-booking-btn">Confirm Booking</button>
                     </div>
                 </form>
             </div>

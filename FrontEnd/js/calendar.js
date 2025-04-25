@@ -301,8 +301,99 @@ const Calendar = (() => {
         details.appendChild(purpose);
         
         item.appendChild(details);
+
+        // Add Edit and Delete buttons
+        const actions = Utils.dom.createElement('div', { className: 'booking-item-actions' });
+        
+        const editBtn = Utils.dom.createElement('button', { className: 'btn secondary small', type: 'button' }, '<i class="fas fa-edit"></i> Edit');
+        editBtn.addEventListener('click', () => openEditBookingModal(booking));
+        actions.appendChild(editBtn);
+        
+        const deleteBtn = Utils.dom.createElement('button', { className: 'btn danger small', type: 'button' }, '<i class="fas fa-trash"></i> Delete');
+        deleteBtn.addEventListener('click', () => confirmDeleteBooking(booking));
+        actions.appendChild(deleteBtn);
+        
+        item.appendChild(actions);
         
         return item;
+    };
+
+    /**
+     * Open the booking modal for editing an existing booking
+     */
+    const openEditBookingModal = (booking) => {
+        // Get modal elements
+        const modalTitle = document.getElementById('booking-modal-title');
+        const bookingForm = document.getElementById('booking-form');
+        const bookingIdInput = document.getElementById('booking-id');
+        const vehicleIdInput = document.getElementById('booking-vehicle-id');
+        const employeeInput = document.getElementById('booking-employee');
+        const emailInput = document.getElementById('booking-email');
+        const projectTitleInput = document.getElementById('booking-project-title');
+        const projectCodeInput = document.getElementById('booking-project-code');
+        const locationInput = document.getElementById('booking-location');
+        const purposeInput = document.getElementById('booking-purpose');
+        const startDateInput = document.getElementById('booking-edit-start-date');
+        const endDateInput = document.getElementById('booking-edit-end-date');
+        const submitBtn = document.getElementById('submit-booking-btn');
+
+        // Reset form (clears any previous state)
+        Utils.form.reset('booking-form');
+
+        // Populate form with booking data
+        modalTitle.textContent = 'Edit Booking';
+        bookingIdInput.value = booking._id;
+        // Ensure vehicleId is correctly accessed (it might be populated or just an ID)
+        vehicleIdInput.value = typeof booking.vehicleId === 'object' ? booking.vehicleId._id : booking.vehicleId; 
+        employeeInput.value = booking.employeeName;
+        emailInput.value = booking.email;
+        projectTitleInput.value = booking.projectTitle;
+        projectCodeInput.value = booking.projectCode;
+        locationInput.value = booking.location;
+        purposeInput.value = booking.purpose;
+        
+        // Format dates for datetime-local input (YYYY-MM-DDTHH:mm)
+        startDateInput.value = Utils.date.formatDateTimeLocal(booking.startDateTime);
+        endDateInput.value = Utils.date.formatDateTimeLocal(booking.endDateTime);
+
+        submitBtn.textContent = 'Save Changes';
+
+        // Open the modal
+        Utils.modal.open('booking-modal');
+    };
+
+    /**
+     * Confirm deletion of a booking
+     */
+    const confirmDeleteBooking = (booking) => {
+        // TODO: Implement confirmation dialog and deletion logic
+        console.log('Delete booking:', booking);
+         Utils.confirm.show(
+            `Are you sure you want to delete the booking for ${booking.employeeName} on ${Utils.date.formatDate(booking.startDateTime)}?`,
+            () => handleDeleteBooking(booking._id), // Call delete function on confirm
+            null // No action on cancel
+        );
+    };
+
+     /**
+     * Handle the actual deletion of a booking
+     */
+    const handleDeleteBooking = async (bookingId) => {
+        try {
+            await ApiService.bookings.delete(bookingId);
+            Utils.notification.toast('Booking deleted successfully', 'success');
+            
+            // Reload bookings and refresh calendar view
+            await loadBookings();
+            generateCalendar();
+            
+            // Hide booking details container as the data is now stale
+            Utils.dom.hide(bookingDetailsContainer); 
+            
+        } catch (error) {
+            console.error('Error deleting booking:', error);
+            Utils.notification.toast(`Failed to delete booking: ${error.message}`, 'error');
+        }
     };
     
     // Public API
