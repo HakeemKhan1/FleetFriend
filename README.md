@@ -1,6 +1,6 @@
 ---
 
-# FleetFriend - Fleet Management System
+# FleetFriend - Vehicle Management System
 
 Created by Hakeem Khan  
 ![FleetFriend](https://github.com/user-attachments/assets/1ff30541-9e58-4eba-8604-cc858382ca40)
